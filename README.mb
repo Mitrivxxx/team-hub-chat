@@ -1,0 +1,36 @@
+# team-hub-chat
+
+## Purpose
+- Chat service scaffold for Team Hub.
+
+## Scope
+- Versioned API scaffold and runtime wiring for future chat features.
+- Current operational endpoints are health/metrics and service infrastructure setup.
+
+## Runtime and ports
+- Local dev: REST `http://localhost:5005`.
+- Docker/runtime: container `8080` (host mapping typically `5005 -> 8080`).
+- Health endpoint: `GET /health`.
+- Metrics endpoint: `GET /metrics`.
+
+## API base path
+- Versioned API: `/api/chat/v1/*`.
+- Gateway route: `/api/chat/{**catch-all}`.
+
+## Integration contracts
+- Service flow: `frontend -> gw-nginx -> gw-api -> srv-chat`.
+- No EF/Kafka/gRPC/domain logic contracts yet (scaffold stage).
+
+## Configuration
+- Main config: `team-hub-chat/appsettings*.json`.
+- Optional local env: `.env` from `.env.example` (non-Production).
+- JWT settings shared with Team Hub environment.
+
+## Observability
+- Serilog logging.
+- OpenTelemetry traces/logs and Prometheus metrics.
+- Shared correlation/session/user logging middleware.
+
+## Related docs
+- `AGENT.md`
+- `docs/chat.mb`
