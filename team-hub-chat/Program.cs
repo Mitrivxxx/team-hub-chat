@@ -7,7 +7,7 @@ if (!string.Equals(
         Environments.Production,
         StringComparison.OrdinalIgnoreCase))
 {
-    // NoClobber: Aspire-injected ConnectionStrings/Jwt/OTEL win over local .env.
+    // NoClobber: Aspire-injected ConnectionStrings/Jwt win over local .env (Port=5433).
     Env.NoClobber().TraversePath().Load();
 }
 
@@ -18,9 +18,11 @@ builder.Host.AddTeamHubSerilog();
 
 builder.Services.AddTeamHubOpenTelemetry(builder.Configuration, "team-hub-chat", includeEntityFrameworkCore: true);
 builder.Services.AddDatabase(builder.Configuration);
-builder.Services.AddJwtConfiguration(builder.Configuration);
 builder.Services.AddChatHealthChecks(builder.Configuration);
+builder.Services.AddJwtConfiguration(builder.Configuration);
 builder.Services.AddChatGrpc(builder.Configuration);
+builder.Services.AddChatBlobStorage(builder.Configuration, builder.Environment);
+builder.Services.AddApplicationServices();
 builder.Services.AddApiInfrastructure();
 
 var app = builder.Build();

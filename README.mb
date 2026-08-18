@@ -4,8 +4,8 @@
 - Chat service for Team Hub.
 
 ## Scope
-- Versioned API scaffold and PostgreSQL schema for future chat features.
-- Current operational endpoints are health/metrics and service infrastructure setup.
+- Org-scoped conversations, members, messages, attachments, reactions, reads, pins, and settings.
+- JWT-protected REST API; organization membership via internal gRPC.
 
 ## Runtime and ports
 - Local dev: REST `http://localhost:5005`.
@@ -19,8 +19,9 @@
 
 ## Integration contracts
 - Service flow: `frontend -> gw-nginx -> gw-api -> srv-chat`.
-- PostgreSQL via EF Core (`ChatDbContext`); internal gRPC proxy to organization members.
-- No Kafka/domain REST contracts yet.
+- PostgreSQL via EF Core (`ChatDbContext`).
+- Organization membership via gRPC `ListMembers`.
+- Attachments via Azure Blob (`TeamHub.BlobStorage`).
 
 ## Configuration
 - Main config: `team-hub-chat/appsettings*.json`.
@@ -36,3 +37,4 @@
 ## Related docs
 - `AGENT.md`
 - `docs/chat.mb`
+- `docs/errors.mb`

@@ -18,7 +18,7 @@ public sealed class ConfigureSwaggerOptions(IApiVersionDescriptionProvider provi
                 Version = description.ApiVersion.ToString(),
                 Description = description.IsDeprecated
                     ? "This API version has been deprecated."
-                    : "Scaffold only — no business endpoints yet."
+                    : "Chat API for conversations and messages."
             });
         }
     }

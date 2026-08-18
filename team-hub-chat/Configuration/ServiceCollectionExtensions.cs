@@ -6,11 +6,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using TeamHub.BlobStorage;
 using TeamHub.Observability;
+using team_hub_chat.Configuration.Options;
 using team_hub_chat.Data;
 using team_hub_chat.Grpc;
+using team_hub_chat.Services;
+using team_hub_chat.Services.Attachments;
+using team_hub_chat.Services.Conversations;
+using team_hub_chat.Services.Messages;
 
 namespace team_hub_chat.Configuration;
 
@@ -20,20 +25,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddDbContext<ChatDbContext>(o =>
             o.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
-        return services;
-    }
-
-    public static IServiceCollection AddChatGrpc(this IServiceCollection services, IConfiguration configuration)
-    {
-        services
-            .AddOptions<GrpcOptions>()
-            .Bind(configuration.GetSection(GrpcOptions.SectionName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        services.AddSingleton<IOrganizationMemberGrpcProxyClient, OrganizationMemberGrpcProxyClient>();
-        services.AddGrpc();
-
         return services;
     }
 
@@ -81,10 +72,54 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection AddChatGrpc(this IServiceCollection services, IConfiguration configuration)
+    {
+        services
+            .AddOptions<GrpcOptions>()
+            .Bind(configuration.GetSection(GrpcOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddSingleton<IOrganizationMemberGrpcProxyClient, OrganizationMemberGrpcProxyClient>();
+        services.AddGrpc();
+
+        return services;
+    }
+
+    public static IServiceCollection AddChatBlobStorage(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment? environment = null)
+    {
+        var section = configuration.GetSection(BlobStorageOptions.SectionName);
+        var connectionString = configuration.GetConnectionString("blobs")
+            ?? section[nameof(BlobStorageOptions.ConnectionString)];
+
+        if (environment?.IsProduction() == true && string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                "BlobStorage:ConnectionString is required in Production (Azure Blob or equivalent).");
+        }
+
+        services.AddTeamHubBlobStorage(configuration);
+        return services;
+    }
+
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IChatOrganizationAccess, ChatOrganizationAccess>();
+        services.AddScoped<IConversationService, ConversationService>();
+        services.AddScoped<IMessageService, MessageService>();
+        services.AddScoped<IMessageAttachmentService, MessageAttachmentService>();
+        return services;
+    }
+
     public static IServiceCollection AddApiInfrastructure(this IServiceCollection services)
     {
         services.AddControllers();
         services.AddTeamHubProblemDetails();
+        services.AddTeamHubExceptionMapper<ChatExceptionMapper>();
         services
             .AddApiVersioning(options =>
             {

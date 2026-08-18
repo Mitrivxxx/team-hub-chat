@@ -3,12 +3,14 @@ WORKDIR /src
 
 COPY aspire/TeamHub.ServiceDefaults/TeamHub.ServiceDefaults.csproj aspire/TeamHub.ServiceDefaults/
 COPY building-blocks/TeamHub.Observability/TeamHub.Observability.csproj building-blocks/TeamHub.Observability/
+COPY building-blocks/TeamHub.BlobStorage/TeamHub.BlobStorage.csproj building-blocks/TeamHub.BlobStorage/
 COPY building-blocks/TeamHub.GrpcContracts/TeamHub.GrpcContracts.csproj building-blocks/TeamHub.GrpcContracts/
 COPY services/team-hub-chat/team-hub-chat/team-hub-chat.csproj services/team-hub-chat/team-hub-chat/
 RUN dotnet restore services/team-hub-chat/team-hub-chat/team-hub-chat.csproj
 
 COPY aspire/TeamHub.ServiceDefaults/ aspire/TeamHub.ServiceDefaults/
 COPY building-blocks/TeamHub.Observability/ building-blocks/TeamHub.Observability/
+COPY building-blocks/TeamHub.BlobStorage/ building-blocks/TeamHub.BlobStorage/
 COPY building-blocks/TeamHub.GrpcContracts/ building-blocks/TeamHub.GrpcContracts/
 COPY services/team-hub-chat/team-hub-chat/ services/team-hub-chat/team-hub-chat/
 RUN dotnet publish services/team-hub-chat/team-hub-chat/team-hub-chat.csproj -c Release -o /app/publish --no-restore

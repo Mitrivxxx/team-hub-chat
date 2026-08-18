@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace team_hub_chat.Configuration;
+namespace team_hub_chat.Configuration.Options;
 
 public sealed class JwtOptions
 {

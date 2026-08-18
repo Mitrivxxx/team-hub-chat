@@ -1,0 +1,43 @@
+using TeamHub.BlobStorage;
+
+namespace team_hub_chat.Tests;
+
+internal sealed class FakeBlobStorageService : IBlobStorageService
+{
+    readonly Dictionary<string, (byte[] Content, string ContentType)> _blobs = new(StringComparer.Ordinal);
+
+    public Task UploadAsync(
+        string blobName,
+        Stream content,
+        string contentType,
+        CancellationToken cancellationToken = default,
+        string? downloadFileName = null)
+    {
+        using var memory = new MemoryStream();
+        content.CopyTo(memory);
+        _blobs[blobName] = (memory.ToArray(), contentType);
+        return Task.CompletedTask;
+    }
+
+    public Task<Stream> OpenReadAsync(string blobName, CancellationToken cancellationToken = default)
+    {
+        if (!_blobs.TryGetValue(blobName, out var blob))
+            throw new FileNotFoundException($"Blob '{blobName}' was not found.");
+
+        return Task.FromResult<Stream>(new MemoryStream(blob.Content));
+    }
+
+    public Task DeleteIfExistsAsync(string blobName, CancellationToken cancellationToken = default)
+    {
+        _blobs.Remove(blobName);
+        return Task.CompletedTask;
+    }
+
+    public Uri? GetReadSasUri(string blobName)
+    {
+        if (!_blobs.ContainsKey(blobName))
+            return null;
+
+        return new Uri($"https://blob.test/{blobName}?sas=fake");
+    }
+}

@@ -1,7 +1,7 @@
 using Grpc.Net.Client;
 using Microsoft.Extensions.Options;
 using TeamHub.GrpcContracts.Organization.V1;
-using team_hub_chat.Configuration;
+using team_hub_chat.Configuration.Options;
 
 namespace team_hub_chat.Grpc;
 
