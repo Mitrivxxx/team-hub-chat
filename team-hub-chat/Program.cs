@@ -7,7 +7,7 @@ if (!string.Equals(
         Environments.Production,
         StringComparison.OrdinalIgnoreCase))
 {
-    // NoClobber: Aspire-injected Jwt/OTEL win over local .env.
+    // NoClobber: Aspire-injected ConnectionStrings/Jwt/OTEL win over local .env.
     Env.NoClobber().TraversePath().Load();
 }
 
@@ -16,12 +16,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.Host.AddTeamHubSerilog();
 
-builder.Services.AddTeamHubOpenTelemetry(builder.Configuration, "team-hub-chat", includeEntityFrameworkCore: false);
+builder.Services.AddTeamHubOpenTelemetry(builder.Configuration, "team-hub-chat", includeEntityFrameworkCore: true);
+builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddJwtConfiguration(builder.Configuration);
-builder.Services.AddChatHealthChecks();
+builder.Services.AddChatHealthChecks(builder.Configuration);
+builder.Services.AddChatGrpc(builder.Configuration);
 builder.Services.AddApiInfrastructure();
 
 var app = builder.Build();
+
+await app.ApplyStartupSchemaAsync();
 
 app.UseApiPipeline();
 app.MapTeamHubObservabilityEndpoints();

@@ -2,19 +2,49 @@ using System.Reflection;
 using System.Text;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using TeamHub.Observability;
+using team_hub_chat.Data;
+using team_hub_chat.Grpc;
 
 namespace team_hub_chat.Configuration;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddChatHealthChecks(this IServiceCollection services)
+    public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddHealthChecks();
+        services.AddDbContext<ChatDbContext>(o =>
+            o.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+        return services;
+    }
+
+    public static IServiceCollection AddChatGrpc(this IServiceCollection services, IConfiguration configuration)
+    {
+        services
+            .AddOptions<GrpcOptions>()
+            .Bind(configuration.GetSection(GrpcOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddSingleton<IOrganizationMemberGrpcProxyClient, OrganizationMemberGrpcProxyClient>();
+        services.AddGrpc();
+
+        return services;
+    }
+
+    public static IServiceCollection AddChatHealthChecks(this IServiceCollection services, IConfiguration configuration)
+    {
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
+
+        services.AddHealthChecks()
+            .AddNpgSql(connectionString, name: "postgres");
+
         return services;
     }
 
